@@ -1,6 +1,9 @@
 using Infra;
+using Produtos_rabbitMq.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddServices();
 
 builder.Services.AddInfra(builder.Configuration);
 
