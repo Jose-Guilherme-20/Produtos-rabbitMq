@@ -1,0 +1,47 @@
+﻿version: '3.9'
+
+services:
+
+  sqlserver-micro:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver-micro
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "SenhaForte@123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - micro-service
+
+  micro-rabbit:
+    image: rabbitmq:3-management
+    container_name: micro-rabbit
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - micro-service
+
+  product-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: product-api
+    ports:
+      - "5000:8080"
+    depends_on:
+      - sqlserver-micro
+      - micro-rabbit
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+    networks:
+      - micro-service
+
+networks:
+  micro-service:
+    external: true
+
+volumes:
+  sql_data:
