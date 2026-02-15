@@ -1,6 +1,7 @@
 
 using Domain.Models.RabbitMq;
 using Microsoft.Extensions.Options;
+using Polly;
 using RabbitMQ.Client;
 
 namespace Infra.RabbitMq
@@ -21,21 +22,36 @@ namespace Infra.RabbitMq
         {
             var factory = new ConnectionFactory()
             {
-                Uri = new Uri(_settings.Host),
+                HostName = _settings.Host,
                 Port = _settings.Port,
                 UserName = _settings.UserName,
-                Password = _settings.Password
+                Password = _settings.Password,
+                AutomaticRecoveryEnabled = true,
+                NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
             };
 
-            Connection = await factory.CreateConnectionAsync();
-            Channel = await Connection.CreateChannelAsync();
+            var retryPolicy = Policy
+                .Handle<Exception>()
+                .WaitAndRetryAsync(
+                    6,
+                    retry => TimeSpan.FromSeconds(Math.Pow(2, retry)),
+                    (ex, time, retryCount, ctx) =>
+                    {
+                        Console.WriteLine($"RabbitMQ não disponível. Tentativa {retryCount}. Nova tentativa em {time.TotalSeconds}s");
+                    });
 
-            await Channel.QueueDeclareAsync(
-                queue: _settings.QueueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
+            await retryPolicy.ExecuteAsync(async () =>
+            {
+                Connection = await factory.CreateConnectionAsync();
+                Channel = await Connection.CreateChannelAsync();
+
+                await Channel.QueueDeclareAsync(
+                    queue: _settings.QueueName,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+            });
         }
 
         public async ValueTask DisposeAsync()

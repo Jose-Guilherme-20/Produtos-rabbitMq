@@ -6,8 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Produtos_rabbitMq</RootNamespace>
     <UserSecretsId>4ef9f4b3-9a9a-416c-8c84-ef256efb633a</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileContext>.</DockerfileContext>
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,10 +17,6 @@
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\" />
   </ItemGroup>
 
   <ItemGroup>

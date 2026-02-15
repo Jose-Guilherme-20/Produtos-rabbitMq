@@ -23,6 +23,11 @@ services:
       - "15672:15672"
     networks:
       - micro-service
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   product-api:
     build:
@@ -32,8 +37,10 @@ services:
     ports:
       - "5000:8080"
     depends_on:
-      - sqlserver-micro
-      - micro-rabbit
+      micro-rabbit:
+        condition: service_healthy
+      sqlserver-micro:
+        condition: service_started
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
     networks:
@@ -41,7 +48,7 @@ services:
 
 networks:
   micro-service:
-    external: true
+    driver: bridge
 
 volumes:
   sql_data:
