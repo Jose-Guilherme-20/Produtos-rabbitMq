@@ -1,4 +1,5 @@
 using Infra;
+using Microsoft.EntityFrameworkCore;
 using Produtos_rabbitMq.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,5 +27,26 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<Infra.Context.AppDbContext>();
+
+        // Garante que o banco seja criado e as migrations aplicadas
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+            Console.WriteLine("--> Migrations aplicadas com sucesso.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"--> Erro ao aplicar migrations: {ex.Message}");
+    }
+}
 
 app.Run();

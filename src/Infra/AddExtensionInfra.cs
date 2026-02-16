@@ -6,6 +6,7 @@ using Infra.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Infra
 {
@@ -13,9 +14,18 @@ namespace Infra
     {
         public static void AddInfra(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<Context.AppDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
+            services.AddDbContext<Context.AppDbContext>(options =>
+            options.UseSqlServer(
+                connectionString,
+                sqlServerOptionsAction: sqlOptions =>
+                {
+                    sqlOptions.EnableRetryOnFailure(
+                        maxRetryCount: 5,
+                        maxRetryDelay: TimeSpan.FromSeconds(30),
+                        errorNumbersToAdd: null);
+                }));
 
             services.Configure<RabbitMqSettings>(
                      configuration.GetSection("RabbitMQ"));
