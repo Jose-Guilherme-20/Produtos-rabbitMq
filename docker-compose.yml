@@ -42,7 +42,8 @@ services:
       sqlserver-micro:
         condition: service_started
     environment:
-      ASPNETCORE_ENVIRONMENT: "Development"
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver-micro;Database=baseMicro;User Id=sa;Password=SenhaForte@123;TrustServerCertificate=True;
     networks:
       - micro-service
 
